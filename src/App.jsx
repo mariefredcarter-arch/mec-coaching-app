@@ -818,29 +818,88 @@ function Messages({ isCoach, messages, setMessages }) {
 
 /* ══════════════════════════════ PROFIL ══════════════════════════════════ */
 function Profil({user,isCoach,db,program,onLogout}){
-  const ytCt=db.filter(e=>e.youtube).length;
-  const rows=isCoach
-    ?[{l:"Exercises in Library",v:`${db.length}`},{l:"YouTube Videos Linked",v:`${ytCt} / ${db.length}`},{l:"Active Clients",v:"8 clients"},{l:"Sessions This Week",v:"24 sessions"}]
-    :[{l:"Goal",v:"Strength + Muscle Mass"},{l:"Frequency",v:"5 sessions / week"},{l:"Current Cycle",v:"Strength — Phase 2/3"},{l:"Next Check-in",v:"Friday 10:00am"}];
-  return(
-    <div style={{padding:14}}>
-      <div style={{background:`linear-gradient(135deg,${T.card},#1a1a30)`,border:`1px solid ${T.border}`,borderRadius:16,padding:22,textAlign:"center",marginBottom:12}}>
-        <div style={{width:68,height:68,borderRadius:"50%",background:T.accent,color:T.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:700,margin:"0 auto 10px"}}>{user.avatar}</div>
-        <div style={{fontSize:20,fontWeight:700}}>{user.name}</div>
-        <div style={{color:T.muted,fontSize:12,marginTop:3}}>{isCoach?"Personal Coach — MFC":`Coached by ${user.coach}`}</div>
-        {user.level&&<div style={{display:"inline-block",background:"#1c2a0a",color:T.accent,border:`1px solid ${T.accentDim}`,borderRadius:20,padding:"4px 12px",fontSize:10,fontFamily:"'DM Mono'",marginTop:8}}>{user.level}</div>}
-      </div>
-      {rows.map((r,i)=>(
-        <div key={i} style={{...S.card({display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7})}}>
-          <div style={{color:T.muted,fontSize:13}}>{r.l}</div>
-          <div style={{fontSize:13,fontWeight:500,color:isCoach?T.accent:T.text,textAlign:"right",maxWidth:"60%"}}>{r.v}</div>
-        </div>
-      ))}
-      <div onClick={onLogout} style={{background:"transparent",border:`1px solid ${T.danger}44`,color:T.danger,borderRadius:12,padding:13,fontSize:14,textAlign:"center",cursor:"pointer",userSelect:"none",marginTop:6}}>Sign Out</div>
-    </div>
-  );
-}
+  const ytCt=db.filter(e=>e.youtube).length;
+  const [showAddClient,setShowAddClient]=useState(false);
+  const [clientName,setClientName]=useState("");
+  const [clientEmail,setClientEmail]=useState("");
+  const [clientPhone,setClientPhone]=useState("");
+  const [saving,setSaving]=useState(false);
+  const [msg,setMsg]=useState("");
 
+  const addClient=async()=>{
+    if(!clientName.trim()||!clientEmail.trim())return;
+    setSaving(true);
+    const {data,error}=await supabase.auth.admin.inviteUserByEmail(clientEmail.trim());
+    if(!error){
+      await supabase.from('clients').insert({
+        coach_id:user.id,
+        email:clientEmail.trim(),
+        name:clientName.trim(),
+        phone:clientPhone.trim(),
+      });
+      setMsg("✅ Client ajouté et invitation envoyée!");
+      setClientName("");setClientEmail("");setClientPhone("");
+      setShowAddClient(false);
+    } else {
+      setMsg("❌ Erreur: "+error.message);
+    }
+    setSaving(false);
+  };
+
+  const rows=isCoach
+    ?[{l:"Exercises in Library",v:`${db.length}`},{l:"YouTube Videos Linked",v:`${ytCt} / ${db.length}`},{l:"Active Clients",v:"8 clients"},{l:"Sessions This Week",v:"24 sessions"}]
+    :[{l:"Goal",v:"Strength + Muscle Mass"},{l:"Frequency",v:"5 sessions / week"},{l:"Current Cycle",v:"Strength — Phase 2/3"},{l:"Next Check-in",v:"Friday 10:00am"}];
+
+  return(
+    <div style={{padding:14}}>
+      <div style={{background:`linear-gradient(135deg,${T.card},#1a1a30)`,border:`1px solid ${T.border}`,borderRadius:16,padding:22,textAlign:"center",marginBottom:12}}>
+        <div style={{width:68,height:68,borderRadius:"50%",background:T.accent,color:T.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:700,margin:"0 auto 10px"}}>{user.avatar}</div>
+        <div style={{fontSize:20,fontWeight:700}}>{user.name}</div>
+        <div style={{color:T.muted,fontSize:12,marginTop:3}}>{isCoach?"Personal Coach — MFC":`Coached by ${user.coach}`}</div>
+      </div>
+
+      {isCoach&&(
+        <div style={{marginBottom:12}}>
+          {msg&&<div style={{padding:"10px 14px",borderRadius:10,background:T.card,border:`1px solid ${T.border}`,fontSize:13,marginBottom:10,textAlign:"center"}}>{msg}</div>}
+          <div onClick={()=>setShowAddClient(v=>!v)} style={{background:T.accent,color:T.bg,borderRadius:12,padding:"12px",fontWeight:700,fontSize:14,textAlign:"center",cursor:"pointer",userSelect:"none",marginBottom:10}}>
+            + Ajouter un client
+          </div>
+          {showAddClient&&(
+            <div style={{...S.card(),border:`1.5px solid ${T.accent}55`}}>
+              <div style={{fontSize:13,fontWeight:600,color:T.accent,marginBottom:10}}>Nouveau client</div>
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:10,color:T.muted,marginBottom:4,fontFamily:"'DM Mono'",letterSpacing:1}}>NOM</div>
+                <input value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="Nom complet" style={S.inp()}/>
+              </div>
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:10,color:T.muted,marginBottom:4,fontFamily:"'DM Mono'",letterSpacing:1}}>EMAIL</div>
+                <input value={clientEmail} onChange={e=>setClientEmail(e.target.value)} placeholder="client@email.com" style={S.inp()}/>
+              </div>
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:10,color:T.muted,marginBottom:4,fontFamily:"'DM Mono'",letterSpacing:1}}>TÉLÉPHONE (optionnel)</div>
+                <input value={clientPhone} onChange={e=>setClientPhone(e.target.value)} placeholder="514-000-0000" style={S.inp()}/>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <div onClick={!saving?addClient:undefined} style={{flex:1,background:saving?T.accentDim:T.accent,color:T.bg,borderRadius:9,padding:"11px",fontWeight:700,fontSize:13,textAlign:"center",cursor:saving?"not-allowed":"pointer",userSelect:"none"}}>
+                  {saving?"Envoi...":"✓ Inviter"}
+                </div>
+                <div onClick={()=>setShowAddClient(false)} style={{flex:1,background:T.surface,color:T.muted,border:`1px solid ${T.border}`,borderRadius:9,padding:"11px",fontSize:13,textAlign:"center",cursor:"pointer",userSelect:"none"}}>Annuler</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {rows.map((r,i)=>(
+        <div key={i} style={{...S.card({display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7})}}>
+          <div style={{color:T.muted,fontSize:13}}>{r.l}</div>
+          <div style={{fontSize:13,fontWeight:500,color:isCoach?T.accent:T.text,textAlign:"right",maxWidth:"60%"}}>{r.v}</div>
+        </div>
+      ))}
+      <div onClick={onLogout} style={{background:"transparent",border:`1px solid ${T.danger}44`,color:T.danger,borderRadius:12,padding:13,fontSize:14,textAlign:"center",cursor:"pointer",userSelect:"none",marginTop:6}}>Sign Out</div>
+    </div>
+  );
+}
 /* ══════════════════════════════════ ROOT ═══════════════════════════════════ */
 export default function App(){
   const [user,setUser]=useState(null);
