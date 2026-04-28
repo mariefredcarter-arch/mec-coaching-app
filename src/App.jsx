@@ -825,6 +825,14 @@ function Profil({user,isCoach,db,program,onLogout}){
   const [clientPhone,setClientPhone]=useState("");
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
+  const [clients,setClients]=useState([]);
+
+useEffect(()=>{
+  if(!isCoach)return;
+  supabase.from('clients').select('*').eq('coach_id',user.id).then(({data})=>{
+    if(data)setClients(data);
+  });
+},[]);
 
   const addClient=async()=>{
   if(!clientName.trim()||!clientEmail.trim())return;
@@ -887,7 +895,21 @@ function Profil({user,isCoach,db,program,onLogout}){
           )}
         </div>
       )}
-
+{isCoach&&(
+  <div style={{marginBottom:12}}>
+    <div style={{fontWeight:700,fontSize:15,marginBottom:8}}>Mes clients ({clients.length})</div>
+    {clients.length===0&&<div style={{...S.card({textAlign:"center",color:T.muted,fontSize:13})}}>Aucun client pour l'instant</div>}
+    {clients.map(c=>(
+      <div key={c.id} style={{...S.card({marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"})}}>
+        <div>
+          <div style={{fontWeight:600,fontSize:14}}>{c.name}</div>
+          <div style={{fontSize:11,color:T.muted,marginTop:2}}>{c.email}</div>
+          {c.phone&&<div style={{fontSize:11,color:T.muted}}>{c.phone}</div>}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
       {rows.map((r,i)=>(
         <div key={i} style={{...S.card({display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7})}}>
           <div style={{color:T.muted,fontSize:13}}>{r.l}</div>
