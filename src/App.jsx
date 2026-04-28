@@ -3,9 +3,9 @@ import { supabase } from "./supabase";
 
 /* ─── Theme ──────────────────────────────────────────────────────────────────── */
 const T = {
-  bg:"#0a0a0f", surface:"#13131a", card:"#1a1a24", border:"#2a2a3a",
-  accent:"#c8f135", accentDim:"#8faa22", text:"#f0f0f0", muted:"#555",
-  danger:"#ff4d4d", yt:"#FF0000",
+  bg:"#ffffff", surface:"#f5f5f5", card:"#efefef", border:"#e0e0e0",
+  accent:"#c8f135", accentDim:"#8faa22", text:"#111111", muted:"#888",
+  danger:"#ff4d4d", yt:"#FF0000",
 };
 
 const Logo = ({ size=32 }) => (
