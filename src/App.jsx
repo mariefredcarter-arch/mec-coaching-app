@@ -827,25 +827,23 @@ function Profil({user,isCoach,db,program,onLogout}){
   const [msg,setMsg]=useState("");
 
   const addClient=async()=>{
-    if(!clientName.trim()||!clientEmail.trim())return;
-    setSaving(true);
-    const {data,error}=await supabase.auth.admin.inviteUserByEmail(clientEmail.trim());
-    if(!error){
-      await supabase.from('clients').insert({
-        coach_id:user.id,
-        email:clientEmail.trim(),
-        name:clientName.trim(),
-        phone:clientPhone.trim(),
-      });
-      setMsg("✅ Client ajouté et invitation envoyée!");
-      setClientName("");setClientEmail("");setClientPhone("");
-      setShowAddClient(false);
-    } else {
-      setMsg("❌ Erreur: "+error.message);
-    }
-    setSaving(false);
-  };
-
+  if(!clientName.trim()||!clientEmail.trim())return;
+  setSaving(true);
+  const {error}=await supabase.from('clients').insert({
+    coach_id:user.id,
+    email:clientEmail.trim(),
+    name:clientName.trim(),
+    phone:clientPhone.trim(),
+  });
+  if(!error){
+    setMsg("✅ Client ajouté! Envoie-lui le lien mfctraining.org pour qu'il crée son compte.");
+    setClientName("");setClientEmail("");setClientPhone("");
+    setShowAddClient(false);
+  } else {
+    setMsg("❌ Erreur: "+error.message);
+  }
+  setSaving(false);
+};
   const rows=isCoach
     ?[{l:"Exercises in Library",v:`${db.length}`},{l:"YouTube Videos Linked",v:`${ytCt} / ${db.length}`},{l:"Active Clients",v:"8 clients"},{l:"Sessions This Week",v:"24 sessions"}]
     :[{l:"Goal",v:"Strength + Muscle Mass"},{l:"Frequency",v:"5 sessions / week"},{l:"Current Cycle",v:"Strength — Phase 2/3"},{l:"Next Check-in",v:"Friday 10:00am"}];
