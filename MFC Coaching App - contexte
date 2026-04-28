@@ -1,0 +1,30 @@
+# MFC Coaching App — Contexte Projet
+
+## Déploiement
+- App React (Vite) déployée sur **Vercel**
+- Domaine : **www.mfctraining.org**
+- GitHub : mariefredcarter-arch/mec-coaching-app
+
+## Supabase
+- Projet : mariefred.carter@gmail.com's Project
+- URL : https://qftsuixpcqagycqdsxrc.supabase.co
+
+## Tables créées
+- **profiles** (id, email, name, role, coach_id, level, created_at)
+  - RLS désactivé temporairement
+- **clients** (id, coach_id, email, name, phone, notes, created_at)
+  - RLS activé
+
+## Compte coach
+- Email : mariefred.carter@gmail.com
+- Rôle : coach
+- Mot de passe : MFC2024!
+
+## État actuel
+- ✅ Login connecté à Supabase Auth
+- ✅ Profil chargé depuis la table profiles
+- ⏳ Prochaine étape : ajouter des clients via l'app
+
+## Fichiers importants
+- src/App.jsx — app principale
+- src/supabase.js — connexion Supabase
