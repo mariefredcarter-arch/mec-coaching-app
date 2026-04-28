@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { supabase } from "./supabase";
 
 /* ─── Theme ──────────────────────────────────────────────────────────────────── */
 const T = {
@@ -157,14 +157,18 @@ const S = {
 function Login({ onLogin }) {
   const [email,setEmail]=useState(""); const [pass,setPass]=useState("");
   const [err,setErr]=useState(""); const [busy,setBusy]=useState(false);
-  const go=()=>{
-    if(!email.trim()||!pass.trim()){setErr("Please fill in all fields.");return;}
-    setErr("");setBusy(true);
-    setTimeout(()=>{
-      const u=USERS.find(u=>u.email===email.trim().toLowerCase()&&u.password===pass);
-      u?onLogin(u):(setErr("Incorrect email or password."),setBusy(false));
-    },500);
-  };
+  const go = async () => {
+  if (!email.trim() || !pass.trim()) { setErr("Please fill in all fields."); return; }
+  setErr(""); setBusy(true);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password: pass,
+  });
+  if (error) { setErr("Incorrect email or password."); setBusy(false); return; }
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+  if (profile) onLogin({ ...data.user, name: profile.name, avatar: profile.name.split(' ').map(n=>n[0]).join(''), role: profile.role });
+  else { setErr("Profile not found."); setBusy(false); }
+};
   return(
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px",maxWidth:440,margin:"0 auto"}}>
       <Logo size={64}/><div style={{fontFamily:"'Bebas Neue'",fontSize:48,letterSpacing:8,color:T.accent,lineHeight:1,marginTop:8}}>MFC</div>
